@@ -1,34 +1,44 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+# ----------------------------------------------------------------------------
+# ------------------------ GERMAN ID AGE VERIFICATION ------------------------
+# ageverify.py
+# Version: 0.2.0
+# 2024-04-21
+#
+# ----------------------------------------------------------------------------
+# This script allows to verify someones age based on the ID, birth date, expiry date,
+# and checksums of the german ID (Personalausweis) as well as to generate valid random
+# sets of those data point for testing purposes
 
 import argparse
 import datetime as dt
 import random as rd
 import string
 
-prog_version = "0.1.0"
-prog_date = "2023-01-03"
-prog_description = ""
+VERSION = "0.2.0"
+VERSION_DATE = "2023-03-21"
+DESCRIPTION = """TBD"""
 
 # Base Config
 DEFAULT_MIN_AGE = 18
 DEFAULT_MAX_AGE = 99
 ALLOWED_CHARS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "C", "F", "G", "H", "J", "K", "L", "M", "N", "P", "R", "T", "V", "W", "X", "Y", "Z"]
 
-parser = argparse.ArgumentParser(description=prog_description)
+parser = argparse.ArgumentParser(description=DESCRIPTION)
 parser.add_argument('-V', '--version', help='Print the version information', action='store_true')
 parser.add_argument('-v', '--verbose', help='Enable verbose mode', action='store_true')
 parser.add_argument('-g', '--generate', help='Generate new age verification data', action='store_true')
-parser.add_argument('--check', nargs=4, metavar=('ID','BD','ED', 'CS'), help='Verify a given set of data')
+parser.add_argument('--check', nargs=4, metavar=('ID','BD','ED','CS'), help='Verify a given set of data')
 
 # Parse command line
 args = parser.parse_args()
 debug_mode = args.verbose
 
 # Print version info and quit
-if args.version:
-    print(prog_description)
-    print("Version: " + str(prog_version) + " (" + str(prog_date) + ")")
+def print_version():
+    print(f"Version: {VERSION} ({VERSION_DATE})")
     exit()
 
 # Verify a given set of ID, birth date, and expiry date
@@ -75,12 +85,12 @@ def generate_data(min_age = DEFAULT_MIN_AGE, max_age = DEFAULT_MAX_AGE):
     id = create_id()
     bd = create_birth_date(min_age, max_age)
     ed = create_expiry_date()
-    checksum_total = calc_check_sum(id + bd + ed)
-    print(id, bd, ed, checksum_total)
-    print("Ausweisnummer: ", id)
-    print("Geburtsdatum: ", bd)
-    print("Ablaufdatum: ", ed)
-    print("Prüfsumme: ", checksum_total)
+    checksum_total = calc_check_sum(id + bd[0] + ed[0])
+    print(id, bd[0], ed[0], checksum_total)
+    print(f"Ausweisnummer: {id}")
+    print(f"Geburtsdatum: {bd[0]} ({bd[1]})")
+    print(f"Ablaufdatum: {ed[0]} ({ed[1]})")
+    print(f"Prüfsumme: {checksum_total}")
 
 def create_id():
     first_chars = ["L","M", "N", "P", "R", "T", "V", "W", "X", "Y"]
@@ -90,13 +100,16 @@ def create_id():
     ret_id = id_num + str(calc_check_sum(id_num))
     return ret_id
 
-def create_birth_date(min_age, max_age):
-    birth_year = (dt.date.today() - dt.timedelta(days=rd.randint(min_age, max_age) * 365)).year
+def create_birth_date(min_age: int, max_age: int = 0):
+    if max_age == 0:
+        birth_year = (dt.date.today() - dt.timedelta(days=min_age * 365)).year
+    else:
+        birth_year = (dt.date.today() - dt.timedelta(days=rd.randint(min_age, max_age) * 365)).year
     birth_day = rd.randint(1, 365)
     birth_date = dt.date(birth_year,1,1) + dt.timedelta(days=birth_day)
     ret_bd = birth_date.strftime("%y%m%d")
     ret_bd += str(calc_check_sum(ret_bd))
-    return ret_bd
+    return (ret_bd, birth_date.isoformat())
 
 def create_expiry_date():
     max_days = 365 * 5
@@ -105,7 +118,7 @@ def create_expiry_date():
     expiry_date = today + dt.timedelta(days=expires_in)
     ret_ed = expiry_date.strftime("%y%m%d")
     ret_ed += str(calc_check_sum(ret_ed))
-    return ret_ed
+    return (ret_ed, expiry_date.isoformat())
 
 # Calculate a checksum over any valid input string
 def calc_check_sum(str):
@@ -130,7 +143,13 @@ def calc_check_sum(str):
 
 # ----- SCRIPT ACTIONS -----
 
-if args.generate:
-    generate_data()
-elif args.check:
-    verify_age(args.check[0], args.check[1], args.check[2], args.check[3])
+def main():
+    if args.version:
+        print_version()
+    elif args.generate:
+        generate_data()
+    elif args.check:
+        verify_age(args.check[0], args.check[1], args.check[2], args.check[3])
+
+if __name__ == "__main__":
+    main()
