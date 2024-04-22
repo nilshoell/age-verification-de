@@ -30,7 +30,7 @@ parser = argparse.ArgumentParser(description=DESCRIPTION)
 parser.add_argument('-V', '--version', help='Print the version information', action='store_true')
 parser.add_argument('-v', '--verbose', help='Enable verbose mode', action='store_true')
 parser.add_argument('-g', '--generate', help='Generate new age verification data', action='store_true')
-parser.add_argument('--check', nargs=4, metavar=('ID','BD','ED','CS'), help='Verify a given set of data')
+parser.add_argument('--verify', nargs=4, metavar=('ID','BD','ED','CS'), help='Verify a given set of data')
 
 # Parse command line
 args = parser.parse_args()
@@ -148,8 +148,8 @@ def main():
         print_version()
     elif args.generate:
         generate_data()
-    elif args.check:
-        verify_age(args.check[0], args.check[1], args.check[2], args.check[3])
+    elif args.verify:
+        verify_age(args.verify[0], args.verify[1], args.verify[2], args.verify[3])
 
 if __name__ == "__main__":
     main()
